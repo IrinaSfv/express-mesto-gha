@@ -12,9 +12,9 @@ const getUsers = (req, res) => {
 };
 
 const getUser = (req, res) => {
-  const { id } = req.params;
-
-  User.findById(id)
+  console.log(req.params);
+  const { userId } = req.params;
+  User.findById(userId)
     .orFail(() => {
       throw new Error('Not found');
     })
@@ -32,14 +32,65 @@ const getUser = (req, res) => {
 
 const createUser = (req, res) => {
   const { name, about, avatar } = req.body;
-
   User.create({ name, about, avatar })
     .then((user) => {
       res.status(201).send({ data: user });
     })
     .catch((e) => {
       console.log('e =>', e.name);
-      if (e === 'ValidationError') {
+      if (e.name === 'ValidationError') {
+        const message = Object.values(e.errors)
+          .map((error) => error.message)
+          .join('; ');
+
+        res.status(400).send({ message });
+      } else {
+        res.status(500).send({ message: 'Smth went wrong' });
+      }
+    });
+};
+
+const updateUserInfo = (req, res) => {
+  const { name, about } = req.body;
+  User.findByIdAndUpdate(
+    req.user._id,
+    { name, about },
+    { new: true, runValidators: true },
+  ).orFail(() => {
+    throw new Error('Not found');
+  })
+    .then((user) => {
+      res.status(200).send({ data: user });
+    })
+    .catch((e) => {
+      console.log('e =>', e.name);
+      if (e.name === 'ValidationError') {
+        const message = Object.values(e.errors)
+          .map((error) => error.message)
+          .join('; ');
+
+        res.status(400).send({ message });
+      } else {
+        res.status(500).send({ message: 'Smth went wrong' });
+      }
+    });
+};
+
+const updateUserAvatar = (req, res) => {
+  const { avatar } = req.body;
+  User.findByIdAndUpdate(
+    req.user._id,
+    { avatar },
+    { new: true, runValidators: true },
+  ).orFail(() => {
+    throw new Error('Not found');
+  })
+    .then((user) => {
+      res.status(200).send({ data: user });
+    })
+    .catch((e) => {
+      console.log('e =>', e.name);
+      if (e.name === 'ValidationError') {
         const message = Object.values(e.errors)
           .map((error) => error.message)
           .join('; ');
@@ -55,4 +106,6 @@ module.exports = {
   getUsers,
   getUser,
   createUser,
+  updateUserInfo,
+  updateUserAvatar,
 };

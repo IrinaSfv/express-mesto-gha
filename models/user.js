@@ -1,11 +1,9 @@
-/* eslint-disable no-unused-vars */
-// eslint-disable-next-line import/no-extraneous-dependencies
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
+    required: [true, 'Имя должно быть заполнено'],
     minlength: 2,
     maxlength: 30,
   },
