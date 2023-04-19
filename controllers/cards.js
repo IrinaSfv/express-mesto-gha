@@ -7,7 +7,7 @@ const getCards = (req, res) => {
     })
     .catch((e) => {
       console.log('e =>', e);
-      res.status(500).send({ message: 'Smth went wrong' });
+      res.status(500).send({ message: 'Что-то пошло не так' });
     });
 };
 
@@ -28,7 +28,7 @@ const createCard = (req, res) => {
 
         res.status(400).send({ message });
       } else {
-        res.status(500).send({ message: 'Smth went wrong' });
+        res.status(500).send({ message: 'Что-то пошло не так' });
       }
     });
 };
@@ -45,11 +45,13 @@ const deleteCard = (req, res) => {
         res.status(400).send({ message: 'Переданы неверные данные' });
       }
       card.remove()
-        .then(() => res.send({ message: 'Карточка успешно удалена' }));
+        .then(() => res.status(200).send({ message: 'Карточка успешно удалена' }));
     })
     .catch((e) => {
       if (e.message === 'Not found') {
         res.status(404).send({ message: 'Карточка не найдена' });
+      } else if (e.name === 'CastError') {
+        res.status(400).send({ message: 'Переданы некорректные данные о карточке' });
       } else {
         res.status(500).send({ message: 'Что-то пошло не так' });
       }
@@ -60,16 +62,18 @@ const setLike = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
-    { new: true },
+    { new: true, runValidators: false, upsert: false },
   ).orFail(() => {
     throw new Error('Not found');
   })
     .then((card) => {
-      res.send({ data: card });
+      res.status(201).send({ data: card });
     })
     .catch((e) => {
       if (e.message === 'Not found') {
         res.status(404).send({ message: 'Карточка не найдена' });
+      } else if (e.name === 'CastError') {
+        res.status(400).send({ message: 'Переданы некорректные данные о карточке' });
       } else {
         res.status(500).send({ message: 'Что-то пошло не так' });
       }
@@ -80,16 +84,18 @@ const removeLike = (req, res) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
-    { new: true },
+    { new: true, runValidators: false, upsert: false },
   ).orFail(() => {
     throw new Error('Not found');
   })
     .then((card) => {
-      res.send({ data: card });
+      res.status(200).send({ data: card });
     })
     .catch((e) => {
       if (e.message === 'Not found') {
         res.status(404).send({ message: 'Карточка не найдена' });
+      } else if (e.name === 'CastError') {
+        res.status(400).send({ message: 'Переданы некорректные данные о карточке' });
       } else {
         res.status(500).send({ message: 'Что-то пошло не так' });
       }
