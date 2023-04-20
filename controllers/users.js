@@ -30,8 +30,8 @@ const getUser = (req, res) => {
       res.status(OK_STATUS).send({ data: user });
     })
     .catch((e) => {
-      console.log('e.name =>', e.name);
-      if (e.name === 'NotFound') {
+      console.log('e.message =>', e.message);
+      if (e.name === 'NotFoundError') {
         res.status(NOT_FOUND_STATUS).send({ message: 'Пользователь с таким id не найден' });
       } else if (e.name === 'CastError') {
         res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные о пользователе' });
@@ -79,7 +79,7 @@ const updateUserInfo = (req, res) => {
     })
     .catch((e) => {
       console.log('e =>', e.name);
-      if (e.name === 'NotFound') {
+      if (e.name === 'NotFoundError') {
         res.status(NOT_FOUND_STATUS).send({ message: 'Пользователь с таким id не найден' });
       } else if (e.name === 'ValidationError') {
         res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные при обновлении аватара' });
@@ -107,7 +107,7 @@ const updateUserAvatar = (req, res) => {
     })
     .catch((e) => {
       console.log('e =>', e.name);
-      if (e.name === 'NotFound') {
+      if (e.name === 'NotFoundError') {
         res.status(NOT_FOUND_STATUS).send({ message: 'Пользователь с таким id не найден' });
       } else if (e.name === 'ValidationError') {
         res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные при обновлении информации' });

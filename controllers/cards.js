@@ -40,10 +40,15 @@ const createCard = (req, res) => {
     });
 };
 
+// Проверка отсутствия удаленной карточки в БД
+// Удаленной карточки не должно быть в БД
+
+// Удаление карточки с некорректным id
+// Код ответа равен 400, а не 500
+
 const deleteCard = (req, res) => {
-  console.log(req.user._id);
-  const { userId } = req.params;
-  Card.findByIdAndRemove(userId)
+  const { cardId } = req.params;
+  Card.findByIdAndRemove(cardId)
     .orFail(() => {
       throw new NotFound();
     })
@@ -51,7 +56,7 @@ const deleteCard = (req, res) => {
       res.status(OK_STATUS).send({ data: card });
     })
     .catch((e) => {
-      if (e.name === 'NotFound') {
+      if (e.name === 'NotFoundError') {
         res.status(NOT_FOUND_STATUS).send({ message: 'Карточка не найдена' });
       } else if (e.name === 'CastError') {
         res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные о карточке' });
@@ -73,7 +78,7 @@ const setLike = (req, res) => {
       res.status(OK_CREATED_STATUS).send({ data: card });
     })
     .catch((e) => {
-      if (e.name === 'NotFound') {
+      if (e.name === 'NotFoundError') {
         res.status(NOT_FOUND_STATUS).send({ message: 'Карточка не найдена' });
       } else if (e.name === 'CastError') {
         res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные о карточке' });
@@ -95,7 +100,7 @@ const removeLike = (req, res) => {
       res.status(OK_STATUS).send({ data: card });
     })
     .catch((e) => {
-      if (e.name === 'NotFound') {
+      if (e.name === 'NotFoundError') {
         res.status(NOT_FOUND_STATUS).send({ message: 'Карточка не найдена' });
       } else if (e.name === 'CastError') {
         res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные о карточке' });
