@@ -25,7 +25,6 @@ const createCard = (req, res) => {
   console.log(req.user._id);
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user._id })
-    .populate(['owner', 'likes'])
     .then((card) => {
       res.status(OK_CREATED_STATUS).send({ data: card });
     })
@@ -64,7 +63,7 @@ const deleteCard = (req, res) => {
     });
 };
 
-const updateCardLike = (req, res, newData) => {
+const updateCardLike = (req, res, newData, statusCode) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     newData,
@@ -74,7 +73,7 @@ const updateCardLike = (req, res, newData) => {
   })
     .populate(['owner', 'likes'])
     .then((card) => {
-      res.status(OK_CREATED_STATUS).send({ data: card });
+      res.status(statusCode).send({ data: card });
     })
     .catch((e) => {
       if (e.name === 'NotFoundError') {
@@ -89,12 +88,12 @@ const updateCardLike = (req, res, newData) => {
 
 const setLike = (req, res) => {
   const newLike = { $addToSet: { likes: req.user._id } }; // добавить _id в массив, если его там нет
-  return updateCardLike(req, res, newLike);
+  return updateCardLike(req, res, newLike, OK_CREATED_STATUS);
 };
 
 const removeLike = (req, res) => {
   const likeToRemove = { $pull: { likes: req.user._id } }; // убрать _id из массива
-  return updateCardLike(req, res, likeToRemove);
+  return updateCardLike(req, res, likeToRemove, OK_STATUS);
 };
 
 module.exports = {
