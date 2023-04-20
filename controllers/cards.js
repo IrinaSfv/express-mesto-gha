@@ -40,12 +40,6 @@ const createCard = (req, res) => {
     });
 };
 
-// Проверка отсутствия удаленной карточки в БД
-// Удаленной карточки не должно быть в БД
-
-// Удаление карточки с некорректным id
-// Код ответа равен 400, а не 500
-
 const deleteCard = (req, res) => {
   const { cardId } = req.params;
   Card.findByIdAndRemove(cardId)
