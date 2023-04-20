@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const User = require('../models/user');
 const NotFound = require('../errors/notFound');
 const {
@@ -33,7 +34,7 @@ const getUser = (req, res) => {
       console.log('e.message =>', e.message);
       if (e.name === 'NotFoundError') {
         res.status(NOT_FOUND_STATUS).send({ message: 'Пользователь с таким id не найден' });
-      } else if (e.name === 'CastError') {
+      } else if (e instanceof mongoose.Error.CastError) {
         res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные о пользователе' });
       } else {
         res.status(INTERNAL_SERVER_STATUS).send({ message: 'Что-то пошло не так' });
@@ -49,7 +50,7 @@ const createUser = (req, res) => {
     })
     .catch((e) => {
       console.log('e.name =>', e.name);
-      if (e.name === 'ValidationError') {
+      if (e instanceof mongoose.Error.ValidationError) {
         const message = Object.values(e.errors)
           .map((error) => error.message)
           .join('; ');
@@ -61,11 +62,10 @@ const createUser = (req, res) => {
     });
 };
 
-const updateUserInfo = (req, res) => {
-  const { name, about } = req.body;
+const updateUser = (req, res, newData) => {
   User.findByIdAndUpdate(
     req.user._id,
-    { name, about },
+    newData,
     {
       new: true,
       runValidators: true,
@@ -81,7 +81,7 @@ const updateUserInfo = (req, res) => {
       console.log('e =>', e.name);
       if (e.name === 'NotFoundError') {
         res.status(NOT_FOUND_STATUS).send({ message: 'Пользователь с таким id не найден' });
-      } else if (e.name === 'ValidationError') {
+      } else if (e instanceof mongoose.Error.ValidationError) {
         res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные при обновлении аватара' });
       } else {
         res.status(INTERNAL_SERVER_STATUS).send({ message: 'Что-то пошло не так' });
@@ -89,32 +89,14 @@ const updateUserInfo = (req, res) => {
     });
 };
 
+const updateUserInfo = (req, res) => {
+  const { name, about } = req.body;
+  return updateUser(req, res, { name, about });
+};
+
 const updateUserAvatar = (req, res) => {
   const { avatar } = req.body;
-  User.findByIdAndUpdate(
-    req.user._id,
-    { avatar },
-    {
-      new: true,
-      runValidators: true,
-      upsert: false,
-    },
-  ).orFail(() => {
-    throw new NotFound();
-  })
-    .then((user) => {
-      res.status(OK_STATUS).send({ data: user });
-    })
-    .catch((e) => {
-      console.log('e =>', e.name);
-      if (e.name === 'NotFoundError') {
-        res.status(NOT_FOUND_STATUS).send({ message: 'Пользователь с таким id не найден' });
-      } else if (e.name === 'ValidationError') {
-        res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные при обновлении информации' });
-      } else {
-        res.status(INTERNAL_SERVER_STATUS).send({ message: 'Что-то пошло не так' });
-      }
-    });
+  return updateUser(req, res, { avatar });
 };
 
 module.exports = {

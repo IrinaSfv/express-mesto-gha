@@ -1,5 +1,9 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+
+// Код ошибки "Такой страницы не существует"
+const { NOT_FOUND_STATUS } = require('./errors/errors');
 
 // Слушаем 3000 порт
 const { PORT = 3000 } = process.env;
@@ -9,10 +13,7 @@ const cardRouter = require('./routes/cards');
 
 const app = express();
 
-/* eslint-disable import/order */
-const bodyParser = require('body-parser');
-
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // подключаемся к серверу mongo
@@ -30,7 +31,7 @@ app.use(userRouter);
 app.use(cardRouter);
 
 app.use('*', (req, res) => {
-  res.status(404).send({ message: 'Такой страницы не существует' });
+  res.status(NOT_FOUND_STATUS).send({ message: 'Такой страницы не существует' });
 });
 
 app.listen(PORT, () => {
