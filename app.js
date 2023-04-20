@@ -15,8 +15,8 @@ const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use(userRouter);
-app.use(cardRouter);
+// подключаемся к серверу mongo
+mongoose.connect('mongodb://localhost:27017/mestodb');
 
 app.use((req, res, next) => {
   req.user = {
@@ -26,12 +26,12 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(userRouter);
+app.use(cardRouter);
+
 app.use('*', (req, res) => {
   res.status(404).send({ message: 'Такой страницы не существует' });
 });
-
-// подключаемся к серверу mongo
-mongoose.connect('mongodb://localhost:27017/mestodb');
 
 app.listen(PORT, () => {
   // Если всё работает, консоль покажет, какой порт приложение слушает
