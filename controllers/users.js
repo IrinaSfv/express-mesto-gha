@@ -14,8 +14,7 @@ const getUsers = (req, res) => {
     .then((users) => {
       res.status(OK_STATUS).send({ data: users });
     })
-    .catch((e) => {
-      console.log('e =>', e);
+    .catch(() => {
       res.status(INTERNAL_SERVER_STATUS).send({ message: 'Что-то пошло не так' });
     });
 };
@@ -31,8 +30,7 @@ const getUser = (req, res) => {
       res.status(OK_STATUS).send({ data: user });
     })
     .catch((e) => {
-      console.log('e.message =>', e.message);
-      if (e.name === 'NotFoundError') {
+      if (e instanceof NotFound) {
         res.status(NOT_FOUND_STATUS).send({ message: 'Пользователь с таким id не найден' });
       } else if (e instanceof mongoose.Error.CastError) {
         res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные о пользователе' });
@@ -49,7 +47,6 @@ const createUser = (req, res) => {
       res.status(OK_CREATED_STATUS).send({ data: user });
     })
     .catch((e) => {
-      console.log('e.name =>', e.name);
       if (e instanceof mongoose.Error.ValidationError) {
         const message = Object.values(e.errors)
           .map((error) => error.message)
@@ -78,8 +75,7 @@ const updateUser = (req, res, newData) => {
       res.status(OK_STATUS).send({ data: user });
     })
     .catch((e) => {
-      console.log('e =>', e.name);
-      if (e.name === 'NotFoundError') {
+      if (e instanceof NotFound) {
         res.status(NOT_FOUND_STATUS).send({ message: 'Пользователь с таким id не найден' });
       } else if (e instanceof mongoose.Error.ValidationError) {
         res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные при обновлении аватара' });
