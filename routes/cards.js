@@ -24,12 +24,24 @@ cardRouter.post('/cards', celebrate({
 }), createCard);
 
 // удаляет карточку по идентификатору
-cardRouter.delete('/cards/:cardId', deleteCard);
+cardRouter.delete('/cards/:cardId', celebrate({
+  params: Joi.object().keys({
+    cardId: Joi.string().required().regex(/^[0-9a-fA-F]{24}$/),
+  }),
+}), deleteCard);
 
 // поставить лайк карточке
-cardRouter.put('/cards/:cardId/likes', setLike);
+cardRouter.put('/cards/:cardId/likes', celebrate({
+  params: Joi.object().keys({
+    cardId: Joi.string().required().regex(/^[0-9a-fA-F]{24}$/),
+  }),
+}), setLike);
 
 // убрать лайк с карточки
-cardRouter.delete('/cards/:cardId/likes', removeLike);
+cardRouter.delete('/cards/:cardId/likes', celebrate({
+  params: Joi.object().keys({
+    cardId: Joi.string().required().regex(/^[0-9a-fA-F]{24}$/),
+  }),
+}), removeLike);
 
 module.exports = cardRouter;

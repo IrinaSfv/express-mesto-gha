@@ -83,8 +83,12 @@ const createUser = (req, res, next) => {
       email,
       password: hash,
     }))
-    .then((user) => {
-      res.status(OK_CREATED_STATUS).send({ data: user });
+    .then(() => {
+      res.status(OK_CREATED_STATUS).send({
+        data: {
+          name, about, avatar, email,
+        },
+      });
     })
     .catch((e) => {
       if (e.code === 11000) {
@@ -104,10 +108,10 @@ const createUser = (req, res, next) => {
 
 const getCurrentUserInfo = (req, res, next) => {
   User.findById(req.user._id)
+    .orFail(() => {
+      throw new NotFound();
+    })
     .then((user) => {
-      if (!user) {
-        throw new NotFound();
-      }
       res.status(OK_STATUS).send({ data: user });
     })
     .catch((e) => {
@@ -149,14 +153,14 @@ const updateUser = (req, res, next, newData) => {
     });
 };
 
-const updateUserInfo = (req, res) => {
+const updateUserInfo = (req, res, next) => {
   const { name, about } = req.body;
-  return updateUser(req, res, { name, about });
+  return updateUser(req, res, next, { name, about });
 };
 
-const updateUserAvatar = (req, res) => {
+const updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
-  return updateUser(req, res, { avatar });
+  return updateUser(req, res, next, { avatar });
 };
 
 module.exports = {

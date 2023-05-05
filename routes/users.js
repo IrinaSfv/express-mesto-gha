@@ -18,7 +18,7 @@ userRouter.get('/users', getUsers);
 // возвращает пользователя по _id
 userRouter.get('/users/:userId', celebrate({
   params: Joi.object().keys({
-    userId: Joi.string().required(),
+    userId: Joi.string().required().regex(/^[0-9a-fA-F]{24}$/),
   }),
 }), getUser);
 
