@@ -25,9 +25,6 @@ userRouter.get('/users/:userId', celebrate({
   }),
 }), getUser);
 
-// // создаёт пользователя
-// userRouter.post('/users', createUser);
-
 // обновляет профиль
 userRouter.patch('/users/me', celebrate({
   body: Joi.object().keys({

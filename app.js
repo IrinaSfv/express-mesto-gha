@@ -18,14 +18,6 @@ app.use(express.json());
 // Подключаемся к серверу mongo
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
-// app.use((req, res, next) => {
-//   req.user = {
-//     _id: '644023e501f717025842249b',
-//   };
-
-//   next();
-// });
-
 // Подключаем роуты
 app.post('/signin', celebrate({
   body: Joi.object().keys({

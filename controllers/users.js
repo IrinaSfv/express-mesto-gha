@@ -12,9 +12,7 @@ const {
   OK_STATUS,
   OK_CREATED_STATUS,
   BAD_REQUEST_STATUS,
-  // UNAUTHORIZED_STATUS,
   NOT_FOUND_STATUS,
-  // INTERNAL_SERVER_STATUS,
 } = require('../errors/errors');
 
 const getUsers = (req, res, next) => {

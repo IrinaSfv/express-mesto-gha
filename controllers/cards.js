@@ -8,7 +8,6 @@ const {
   BAD_REQUEST_STATUS,
   NOT_OWNER_STATUS,
   NOT_FOUND_STATUS,
-  // INTERNAL_SERVER_STATUS,
 } = require('../errors/errors');
 
 const getCards = (req, res, next) => {
@@ -18,9 +17,6 @@ const getCards = (req, res, next) => {
       res.status(OK_STATUS).send({ data: cards });
     })
     .catch(next);
-  // .catch(() => {
-  //   res.status(INTERNAL_SERVER_STATUS).send({ message: 'Что-то пошло не так' });
-  // });
 };
 
 const createCard = (req, res, next) => {
@@ -37,7 +33,6 @@ const createCard = (req, res, next) => {
 
         res.status(BAD_REQUEST_STATUS).send({ message });
       } else {
-        // res.status(INTERNAL_SERVER_STATUS).send({ message: 'Что-то пошло не так' });
         next(e);
       }
     });
@@ -66,7 +61,6 @@ const deleteCard = (req, res, next) => {
       } else if (e instanceof NotOwner) {
         res.status(NOT_OWNER_STATUS).send({ message: 'Невозможно удалить чужую карточку' });
       } else {
-        // res.status(INTERNAL_SERVER_STATUS).send({ message: 'Что-то пошло не так' });
         next(e);
       }
     });
@@ -90,7 +84,6 @@ const updateCardLike = (req, res, next, newData, statusCode) => {
       } else if (e instanceof mongoose.Error.CastError) {
         res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные о карточке' });
       } else {
-        // res.status(INTERNAL_SERVER_STATUS).send({ message: 'Что-то пошло не так' });
         next(e);
       }
     });
