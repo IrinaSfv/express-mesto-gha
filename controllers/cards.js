@@ -1,10 +1,12 @@
 const mongoose = require('mongoose');
 const Card = require('../models/card');
 const NotFound = require('../errors/notFound');
+const NotOwner = require('../errors/notOwner');
 const {
   OK_STATUS,
   OK_CREATED_STATUS,
   BAD_REQUEST_STATUS,
+  NOT_OWNER_STATUS,
   NOT_FOUND_STATUS,
   INTERNAL_SERVER_STATUS,
 } = require('../errors/errors');
@@ -41,19 +43,26 @@ const createCard = (req, res) => {
 
 const deleteCard = (req, res) => {
   const { cardId } = req.params;
+  const ownerId = req.user._id;
   Card.findByIdAndRemove(cardId)
     .orFail(() => {
       throw new NotFound();
     })
     .populate(['owner', 'likes'])
     .then((card) => {
-      res.status(OK_STATUS).send({ data: card });
+      if (!card.owner.equals(ownerId)) {
+        throw new NotOwner();
+      } else {
+        res.status(OK_STATUS).send({ data: card });
+      }
     })
     .catch((e) => {
       if (e instanceof NotFound) {
         res.status(NOT_FOUND_STATUS).send({ message: 'Карточка не найдена' });
       } else if (e instanceof mongoose.Error.CastError) {
         res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные о карточке' });
+      } else if (e instanceof NotOwner) {
+        res.status(NOT_OWNER_STATUS).send({ message: 'Невозможно удалить чужую карточку' });
       } else {
         res.status(INTERNAL_SERVER_STATUS).send({ message: 'Что-то пошло не так' });
       }

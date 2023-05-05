@@ -1,10 +1,13 @@
 const express = require('express');
+// eslint-disable-next-line import/no-extraneous-dependencies
+const { celebrate, Joi } = require('celebrate');
+
 const {
   getUsers,
   getUser,
-  createUser,
   updateUserInfo,
   updateUserAvatar,
+  getCurrentUserInfo,
 } = require('../controllers/users');
 
 const userRouter = express.Router();
@@ -13,15 +16,31 @@ const userRouter = express.Router();
 userRouter.get('/users', getUsers);
 
 // возвращает пользователя по _id
-userRouter.get('/users/:userId', getUser);
+userRouter.get('/users/:userId', celebrate({
+  params: Joi.object().keys({
+    userId: Joi.string().required(),
+  }),
+}), getUser);
 
-// создаёт пользователя
-userRouter.post('/users', createUser);
+// // создаёт пользователя
+// userRouter.post('/users', createUser);
 
 // обновляет профиль
-userRouter.patch('/users/me', updateUserInfo);
+userRouter.patch('/users/me', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30).required(),
+    about: Joi.string().min(2).max(30).required(),
+  }),
+}), updateUserInfo);
 
-// создаёт пользователя
-userRouter.patch('/users/me/avatar', updateUserAvatar);
+// обновляет аватар
+userRouter.patch('/users/me/avatar', celebrate({
+  body: Joi.object().keys({
+    avatar: Joi.string().required().regex(/^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)$/),
+  }),
+}), updateUserAvatar);
+
+// возвращает информацию о текущем пользователе
+userRouter.get('/users/me', getCurrentUserInfo);
 
 module.exports = userRouter;
