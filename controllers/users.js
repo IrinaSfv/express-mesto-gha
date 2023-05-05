@@ -22,9 +22,6 @@ const getUsers = (req, res, next) => {
     .then((users) => {
       res.status(OK_STATUS).send({ data: users });
     })
-    // .catch(() => {
-    //   res.status(INTERNAL_SERVER_STATUS).send({ message: 'Что-то пошло не так' });
-    // });
     .catch(next);
 };
 
@@ -44,7 +41,6 @@ const getUser = (req, res, next) => {
       } else if (e instanceof mongoose.Error.CastError) {
         res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные о пользователе' });
       } else {
-        // res.status(INTERNAL_SERVER_STATUS).send({ message: 'Что-то пошло не так' });
         next(e);
       }
     });
@@ -101,13 +97,14 @@ const createUser = (req, res, next) => {
         res.status(BAD_REQUEST_STATUS).send({ message });
       } else {
         next(e);
-        // res.status(INTERNAL_SERVER_STATUS).send({ message: 'Что-то пошло не так' });
       }
     });
 };
 
 const getCurrentUserInfo = (req, res, next) => {
-  User.findById(req.user._id)
+  const userId = req.user._id;
+  console.log(userId);
+  User.findById(userId)
     .orFail(() => {
       throw new NotFound();
     })
@@ -121,7 +118,6 @@ const getCurrentUserInfo = (req, res, next) => {
         res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные о пользователе' });
       } else {
         next(e);
-        // res.status(INTERNAL_SERVER_STATUS).send({ message: 'Что-то пошло не так' });
       }
     });
 };
@@ -148,7 +144,6 @@ const updateUser = (req, res, next, newData) => {
         res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные при обновлении аватара' });
       } else {
         next(e);
-        // res.status(INTERNAL_SERVER_STATUS).send({ message: 'Что-то пошло не так' });
       }
     });
 };

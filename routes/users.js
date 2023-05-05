@@ -15,6 +15,9 @@ const userRouter = express.Router();
 // возвращает всех пользователей
 userRouter.get('/users', getUsers);
 
+// возвращает информацию о текущем пользователе
+userRouter.get('/users/me', getCurrentUserInfo);
+
 // возвращает пользователя по _id
 userRouter.get('/users/:userId', celebrate({
   params: Joi.object().keys({
@@ -39,8 +42,5 @@ userRouter.patch('/users/me/avatar', celebrate({
     avatar: Joi.string().required().regex(/^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)$/),
   }),
 }), updateUserAvatar);
-
-// возвращает информацию о текущем пользователе
-userRouter.get('/users/me', getCurrentUserInfo);
 
 module.exports = userRouter;
