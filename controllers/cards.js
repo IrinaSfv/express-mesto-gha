@@ -40,11 +40,11 @@ const deleteCard = (req, res, next) => {
   const { cardId } = req.params;
   const ownerId = req.user._id;
   Card.findById(cardId)
+    .orFail(() => {
+      throw new NotFound('Карточка не найдена');
+    })
     .populate(['owner', 'likes'])
     .then((card) => {
-      if (!card) {
-        throw new NotFound('Карточка не найдена');
-      }
       if (!card.owner.equals(ownerId)) {
         throw new NotOwner('Невозможно удалить чужую карточку');
       } else {
@@ -54,13 +54,13 @@ const deleteCard = (req, res, next) => {
           })
           .catch(next);
       }
-      // card.remove().then(() => res.status(OK_STATUS).send({ message: 'Карточка удалена' }));
     })
     .catch((e) => {
       if (e instanceof mongoose.Error.CastError) {
-        return next(new BadRequest('Переданы некорректные данные о карточке'));
+        next(new BadRequest('Переданы некорректные данные о карточке'));
+      } else {
+        next(e);
       }
-      return next(e);
     });
 };
 
@@ -70,18 +70,19 @@ const updateCardLike = (req, res, next, newData) => {
     newData,
     { new: true },
   )
+    .orFail(() => {
+      throw new NotFound('Карточка не найдена');
+    })
     .populate(['owner', 'likes'])
     .then((card) => {
-      if (!card) {
-        throw new NotFound('Карточка не найдена');
-      }
       res.status(OK_STATUS).send({ data: card });
     })
     .catch((e) => {
       if (e instanceof mongoose.Error.CastError) {
-        return next(new BadRequest('Переданы некорректные данные о карточке'));
+        next(new BadRequest('Переданы некорректные данные о карточке'));
+      } else {
+        next(e);
       }
-      return next(e);
     });
 };
 

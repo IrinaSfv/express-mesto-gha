@@ -25,10 +25,10 @@ const getUsers = (req, res, next) => {
 const getUser = (req, res, next) => {
   const { userId } = req.params;
   User.findById(userId)
+    .orFail(() => {
+      throw new NotFound('Пользователь с таким id не найден');
+    })
     .then((user) => {
-      if (!user) {
-        throw new NotFound('Пользователь с таким id не найден');
-      }
       res.status(OK_STATUS).send({ data: user });
     })
     .catch((e) => {
@@ -95,7 +95,6 @@ const createUser = (req, res, next) => {
 
 const getCurrentUserInfo = (req, res, next) => {
   const userId = req.user._id;
-  console.log(userId);
   User.findById(userId)
     .orFail(() => {
       throw new NotFound('Пользователь с таким id не найден');
