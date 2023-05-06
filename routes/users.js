@@ -1,6 +1,5 @@
 const express = require('express');
-// eslint-disable-next-line import/no-extraneous-dependencies
-const { celebrate, Joi } = require('celebrate');
+const { validateGetUser, validateUpdateUserInfo, validateUpdateAvatar } = require('../middlewares/validation');
 
 const {
   getUsers,
@@ -19,25 +18,12 @@ userRouter.get('/users', getUsers);
 userRouter.get('/users/me', getCurrentUserInfo);
 
 // возвращает пользователя по _id
-userRouter.get('/users/:userId', celebrate({
-  params: Joi.object().keys({
-    userId: Joi.string().required().regex(/^[0-9a-fA-F]{24}$/),
-  }),
-}), getUser);
+userRouter.get('/users/:userId', validateGetUser, getUser);
 
 // обновляет профиль
-userRouter.patch('/users/me', celebrate({
-  body: Joi.object().keys({
-    name: Joi.string().min(2).max(30).required(),
-    about: Joi.string().min(2).max(30).required(),
-  }),
-}), updateUserInfo);
+userRouter.patch('/users/me', validateUpdateUserInfo, updateUserInfo);
 
 // обновляет аватар
-userRouter.patch('/users/me/avatar', celebrate({
-  body: Joi.object().keys({
-    avatar: Joi.string().required().regex(/^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)$/),
-  }),
-}), updateUserAvatar);
+userRouter.patch('/users/me/avatar', validateUpdateAvatar, updateUserAvatar);
 
 module.exports = userRouter;

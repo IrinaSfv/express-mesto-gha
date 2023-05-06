@@ -1,6 +1,5 @@
 const express = require('express');
-// eslint-disable-next-line import/no-extraneous-dependencies
-const { celebrate, Joi } = require('celebrate');
+const { validateCreateCard, validateUpdateCard } = require('../middlewares/validation');
 
 const {
   getCards,
@@ -16,32 +15,15 @@ const cardRouter = express.Router();
 cardRouter.get('/cards', getCards);
 
 // создаёт карточку POST /cards
-cardRouter.post('/cards', celebrate({
-  body: Joi.object().keys({
-    name: Joi.string().min(2).max(30).required(),
-    link: Joi.string().required().regex(/^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)$/),
-  }),
-}), createCard);
+cardRouter.post('/cards', validateCreateCard, createCard);
 
 // удаляет карточку по идентификатору
-cardRouter.delete('/cards/:cardId', celebrate({
-  params: Joi.object().keys({
-    cardId: Joi.string().required().regex(/^[0-9a-fA-F]{24}$/),
-  }),
-}), deleteCard);
+cardRouter.delete('/cards/:cardId', validateUpdateCard, deleteCard);
 
 // поставить лайк карточке
-cardRouter.put('/cards/:cardId/likes', celebrate({
-  params: Joi.object().keys({
-    cardId: Joi.string().required().regex(/^[0-9a-fA-F]{24}$/),
-  }),
-}), setLike);
+cardRouter.put('/cards/:cardId/likes', validateUpdateCard, setLike);
 
 // убрать лайк с карточки
-cardRouter.delete('/cards/:cardId/likes', celebrate({
-  params: Joi.object().keys({
-    cardId: Joi.string().required().regex(/^[0-9a-fA-F]{24}$/),
-  }),
-}), removeLike);
+cardRouter.delete('/cards/:cardId/likes', validateUpdateCard, removeLike);
 
 module.exports = cardRouter;

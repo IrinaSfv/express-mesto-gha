@@ -1,13 +1,14 @@
 const mongoose = require('mongoose');
 const Card = require('../models/card');
 const NotFound = require('../errors/notFound');
+const BadRequest = require('../errors/badRequest');
 const NotOwner = require('../errors/notOwner');
 const {
   OK_STATUS,
   OK_CREATED_STATUS,
-  BAD_REQUEST_STATUS,
-  NOT_OWNER_STATUS,
-  NOT_FOUND_STATUS,
+  // BAD_REQUEST_STATUS,
+  // NOT_OWNER_STATUS,
+  // NOT_FOUND_STATUS,
 } = require('../errors/errors');
 
 const getCards = (req, res, next) => {
@@ -31,7 +32,8 @@ const createCard = (req, res, next) => {
           .map((error) => error.message)
           .join('; ');
 
-        res.status(BAD_REQUEST_STATUS).send({ message });
+        next(new BadRequest(message));
+        // res.status(BAD_REQUEST_STATUS).send({ message });
       } else {
         next(e);
       }
@@ -41,48 +43,65 @@ const createCard = (req, res, next) => {
 const deleteCard = (req, res, next) => {
   const { cardId } = req.params;
   const ownerId = req.user._id;
-  Card.findByIdAndRemove(cardId)
+  Card.findById(cardId)
     .orFail(() => {
-      throw new NotFound();
+      throw new NotFound('Карточка не найдена');
     })
     .populate(['owner', 'likes'])
     .then((card) => {
       if (!card.owner.equals(ownerId)) {
-        throw new NotOwner();
+        throw new NotOwner('Невозможно удалить чужую карточку');
       } else {
-        res.status(OK_STATUS).send({ data: card });
+        return card.remove();
       }
     })
+    .then(() => res.status(OK_STATUS).send({ message: 'Карточка удалена' }))
+    // .catch((e) => {
+    //   if (e instanceof NotFound) {
+    //     res.status(NOT_FOUND_STATUS).send({ message: 'Карточка не найдена' });
+    //   } else if (e instanceof mongoose.Error.CastError) {
+    //     res.status(BAD_REQUEST_STATUS)
+    // .send({ message: 'Переданы некорректные данные о карточке' });
+    //   } else if (e instanceof NotOwner) {
+    //     res.status(NOT_OWNER_STATUS).send({ message: 'Невозможно удалить чужую карточку' });
+    //   } else {
+    //     next(e);
+    //   }
+    // });
     .catch((e) => {
-      if (e instanceof NotFound) {
-        res.status(NOT_FOUND_STATUS).send({ message: 'Карточка не найдена' });
-      } else if (e instanceof mongoose.Error.CastError) {
-        res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные о карточке' });
-      } else if (e instanceof NotOwner) {
-        res.status(NOT_OWNER_STATUS).send({ message: 'Невозможно удалить чужую карточку' });
+      if (e instanceof mongoose.Error.CastError) {
+        next(new BadRequest('Переданы некорректные данные о карточке'));
       } else {
         next(e);
       }
     });
 };
 
-const updateCardLike = (req, res, next, newData, statusCode) => {
+const updateCardLike = (req, res, next, newData) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     newData,
     { new: true },
   ).orFail(() => {
-    throw new NotFound();
+    throw new NotFound('Карточка не найдена');
   })
     .populate(['owner', 'likes'])
     .then((card) => {
-      res.status(statusCode).send({ data: card });
+      res.status(OK_STATUS).send({ data: card });
     })
+    // .catch((e) => {
+    //   if (e instanceof NotFound) {
+    //     res.status(NOT_FOUND_STATUS).send({ message: 'Карточка не найдена' });
+    //   } else if (e instanceof mongoose.Error.CastError) {
+    //     res.status(BAD_REQUEST_STATUS)
+    // .send({ message: 'Переданы некорректные данные о карточке' });
+    //   } else {
+    //     next(e);
+    //   }
+    // });
     .catch((e) => {
-      if (e instanceof NotFound) {
-        res.status(NOT_FOUND_STATUS).send({ message: 'Карточка не найдена' });
-      } else if (e instanceof mongoose.Error.CastError) {
-        res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные о карточке' });
+      if (e instanceof mongoose.Error.CastError) {
+        next(new BadRequest('Переданы некорректные данные о карточке'));
       } else {
         next(e);
       }
@@ -91,12 +110,12 @@ const updateCardLike = (req, res, next, newData, statusCode) => {
 
 const setLike = (req, res, next) => {
   const newLike = { $addToSet: { likes: req.user._id } }; // добавить _id в массив, если его там нет
-  return updateCardLike(req, res, next, newLike, OK_CREATED_STATUS);
+  return updateCardLike(req, res, next, newLike);
 };
 
 const removeLike = (req, res, next) => {
   const likeToRemove = { $pull: { likes: req.user._id } }; // убрать _id из массива
-  return updateCardLike(req, res, next, likeToRemove, OK_STATUS);
+  return updateCardLike(req, res, next, likeToRemove);
 };
 
 module.exports = {

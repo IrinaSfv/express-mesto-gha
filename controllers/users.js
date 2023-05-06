@@ -5,14 +5,16 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const NotFound = require('../errors/notFound');
+const BadRequest = require('../errors/badRequest');
+const AuthError = require('../errors/authError');
 const ConflictError = require('../errors/conflict');
-const WrongTokenError = require('../errors/wrongToken');
+// const WrongTokenError = require('../errors/wrongToken');
 
 const {
   OK_STATUS,
   OK_CREATED_STATUS,
-  BAD_REQUEST_STATUS,
-  NOT_FOUND_STATUS,
+  // BAD_REQUEST_STATUS,
+  // NOT_FOUND_STATUS,
 } = require('../errors/errors');
 
 const getUsers = (req, res, next) => {
@@ -28,16 +30,14 @@ const getUser = (req, res, next) => {
   const { userId } = req.params;
   User.findById(userId)
     .orFail(() => {
-      throw new NotFound();
+      throw new NotFound('Пользователь с таким id не найден');
     })
     .then((user) => {
       res.status(OK_STATUS).send({ data: user });
     })
     .catch((e) => {
-      if (e instanceof NotFound) {
-        res.status(NOT_FOUND_STATUS).send({ message: 'Пользователь с таким id не найден' });
-      } else if (e instanceof mongoose.Error.CastError) {
-        res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные о пользователе' });
+      if (e instanceof mongoose.Error.CastError) {
+        next(new BadRequest('Переданы некорректные данные о пользователе'));
       } else {
         next(e);
       }
@@ -48,16 +48,16 @@ const login = (req, res, next) => {
   const { email, password } = req.body;
 
   return User.findUserByCredentials(email, password)
+    .orFail(() => {
+      throw new AuthError('Неправильная почта или пароль');
+    })
     .then((user) => {
       // создадим токен
       const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
       // аутентификация успешна
       res.status(OK_STATUS).send({ token });
     })
-    .catch(() => {
-      // возвращаем ошибку аутентификации
-      next(new WrongTokenError('Неправильная почта или пароль'));
-    });
+    .catch(next);
 };
 
 const createUser = (req, res, next) => {
@@ -92,7 +92,8 @@ const createUser = (req, res, next) => {
           .map((error) => error.message)
           .join('; ');
 
-        res.status(BAD_REQUEST_STATUS).send({ message });
+        next(new BadRequest(message));
+        // res.status(BAD_REQUEST_STATUS).send({ message });
       } else {
         next(e);
       }
@@ -104,20 +105,22 @@ const getCurrentUserInfo = (req, res, next) => {
   console.log(userId);
   User.findById(userId)
     .orFail(() => {
-      throw new NotFound();
+      throw new NotFound('Пользователь с таким id не найден');
     })
     .then((user) => {
       res.status(OK_STATUS).send({ data: user });
     })
-    .catch((e) => {
-      if (e instanceof NotFound) {
-        res.status(NOT_FOUND_STATUS).send({ message: 'Пользователь с таким id не найден' });
-      } else if (e instanceof mongoose.Error.CastError) {
-        res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные о пользователе' });
-      } else {
-        next(e);
-      }
-    });
+    // .catch((e) => {
+    //   if (e instanceof NotFound) {
+    //     res.status(NOT_FOUND_STATUS).send({ message: 'Пользователь с таким id не найден' });
+    //   } else if (e instanceof mongoose.Error.CastError) {
+    //     res.status(BAD_REQUEST_STATUS)
+    //        .send({ message: 'Переданы некорректные данные о пользователе' });
+    //   } else {
+    //     next(e);
+    //   }
+    // });
+    .catch(next);
 };
 
 const updateUser = (req, res, next, newData) => {
@@ -130,20 +133,22 @@ const updateUser = (req, res, next, newData) => {
       upsert: false,
     },
   ).orFail(() => {
-    throw new NotFound();
+    throw new NotFound('Пользователь с таким id не найден');
   })
     .then((user) => {
       res.status(OK_STATUS).send({ data: user });
     })
-    .catch((e) => {
-      if (e instanceof NotFound) {
-        res.status(NOT_FOUND_STATUS).send({ message: 'Пользователь с таким id не найден' });
-      } else if (e instanceof mongoose.Error.ValidationError) {
-        res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные при обновлении аватара' });
-      } else {
-        next(e);
-      }
-    });
+    // .catch((e) => {
+    //   if (e instanceof NotFound) {
+    //     res.status(NOT_FOUND_STATUS).send({ message: 'Пользователь с таким id не найден' });
+    //   } else if (e instanceof mongoose.Error.ValidationError) {
+    //     res.status(BAD_REQUEST_STATUS)
+    //        .send({ message: 'Переданы некорректные данные при обновлении аватара' });
+    //   } else {
+    //     next(e);
+    //   }
+    // });
+    .catch(next);
 };
 
 const updateUserInfo = (req, res, next) => {

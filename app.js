@@ -1,8 +1,9 @@
 const express = require('express');
 const mongoose = require('mongoose');
 // eslint-disable-next-line import/no-extraneous-dependencies
-const { errors, celebrate, Joi } = require('celebrate');
+const { errors } = require('celebrate');
 const auth = require('./middlewares/auth');
+const { validateLogin, validateCreateUser } = require('./middlewares/validation');
 const { createUser, login } = require('./controllers/users');
 // Код ошибки "Такой страницы не существует"
 const { NOT_FOUND_STATUS, INTERNAL_SERVER_STATUS } = require('./errors/errors');
@@ -19,28 +20,13 @@ app.use(express.json());
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
 // Подключаем роуты
-app.post('/signin', celebrate({
-  body: Joi.object().keys({
-    email: Joi.string().required().email(),
-    password: Joi.string().required(),
-  }),
-}), login);
-
-app.post('/signup', celebrate({
-  body: Joi.object().keys({
-    name: Joi.string().min(2).max(30),
-    about: Joi.string().min(2).max(30),
-    avatar: Joi.string().regex(/^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)$/),
-    email: Joi.string().required().email(),
-    password: Joi.string().required(),
-  }),
-}), createUser);
+app.post('/signin', validateLogin, login);
+app.post('/signup', validateCreateUser, createUser);
 
 app.use(auth);
 
 app.use(userRouter);
 app.use(cardRouter);
-
 app.use('*', (req, res) => {
   res.status(NOT_FOUND_STATUS).send({ message: 'Такой страницы не существует' });
 });
