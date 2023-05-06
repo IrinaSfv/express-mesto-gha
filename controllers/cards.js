@@ -39,16 +39,22 @@ const createCard = (req, res, next) => {
 const deleteCard = (req, res, next) => {
   const { cardId } = req.params;
   const ownerId = req.user._id;
-  return Card.findById(cardId)
+  Card.findById(cardId)
     .populate(['owner', 'likes'])
     .then((card) => {
       if (!card) {
         throw new NotFound('Карточка не найдена');
       }
       if (!card.owner.equals(ownerId)) {
-        return next(new NotOwner('Невозможно удалить чужую карточку'));
+        throw new NotOwner('Невозможно удалить чужую карточку');
+      } else {
+        Card.deleteOne(card)
+          .then(() => {
+            res.status(OK_STATUS).send({ data: card });
+          })
+          .catch(next);
       }
-      return card.remove().then(() => res.status(OK_STATUS).send({ message: 'Карточка удалена' }));
+      // card.remove().then(() => res.status(OK_STATUS).send({ message: 'Карточка удалена' }));
     })
     .catch((e) => {
       if (e instanceof mongoose.Error.CastError) {

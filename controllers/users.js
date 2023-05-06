@@ -33,10 +33,9 @@ const getUser = (req, res, next) => {
     })
     .catch((e) => {
       if (e instanceof mongoose.Error.CastError) {
-        next(new BadRequest('Переданы некорректные данные о пользователе'));
-        return;
+        return next(new BadRequest('Переданы некорректные данные о пользователе'));
       }
-      next(e);
+      return next(e);
     });
 };
 
