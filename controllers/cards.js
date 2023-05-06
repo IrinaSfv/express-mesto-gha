@@ -39,24 +39,22 @@ const createCard = (req, res, next) => {
 const deleteCard = (req, res, next) => {
   const { cardId } = req.params;
   const ownerId = req.user._id;
-  Card.findById(cardId)
+  return Card.findById(cardId)
     .populate(['owner', 'likes'])
     .then((card) => {
       if (!card) {
         throw new NotFound('Карточка не найдена');
       }
       if (!card.owner.equals(ownerId)) {
-        throw new NotOwner('Невозможно удалить чужую карточку');
-      } else {
-        return card.remove().then(() => res.status(OK_STATUS).send({ message: 'Карточка удалена' }));
+        return next(new NotOwner('Невозможно удалить чужую карточку'));
       }
+      return card.remove().then(() => res.status(OK_STATUS).send({ message: 'Карточка удалена' }));
     })
     .catch((e) => {
       if (e instanceof mongoose.Error.CastError) {
-        next(new BadRequest('Переданы некорректные данные о карточке'));
-      } else {
-        next(e);
+        return next(new BadRequest('Переданы некорректные данные о карточке'));
       }
+      return next(e);
     });
 };
 
@@ -75,10 +73,9 @@ const updateCardLike = (req, res, next, newData) => {
     })
     .catch((e) => {
       if (e instanceof mongoose.Error.CastError) {
-        next(new BadRequest('Переданы некорректные данные о карточке'));
-      } else {
-        next(e);
+        return next(new BadRequest('Переданы некорректные данные о карточке'));
       }
+      return next(e);
     });
 };
 

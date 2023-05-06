@@ -23,7 +23,6 @@ const getUsers = (req, res, next) => {
 };
 
 const getUser = (req, res, next) => {
-  console.log(req.params);
   const { userId } = req.params;
   User.findById(userId)
     .then((user) => {
@@ -35,9 +34,9 @@ const getUser = (req, res, next) => {
     .catch((e) => {
       if (e instanceof mongoose.Error.CastError) {
         next(new BadRequest('Переданы некорректные данные о пользователе'));
-      } else {
-        next(e);
+        return;
       }
+      next(e);
     });
 };
 
