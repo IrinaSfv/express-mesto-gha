@@ -8,11 +8,12 @@ const NotFound = require('../errors/notFound');
 const BadRequest = require('../errors/badRequest');
 const AuthError = require('../errors/authError');
 const ConflictError = require('../errors/conflict');
-
 const {
   OK_STATUS,
   OK_CREATED_STATUS,
-} = require('../errors/errors');
+  SALT_ROUND,
+  SECRET_KEY,
+} = require('../config/config');
 
 const getUsers = (req, res, next) => {
   User.find()
@@ -45,7 +46,7 @@ const login = (req, res, next) => {
   return User.findUserByCredentials(email, password)
     .then((user) => {
       // создадим токен
-      const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+      const token = jwt.sign({ _id: user._id }, SECRET_KEY, { expiresIn: '7d' });
       // аутентификация успешна
       res.status(OK_STATUS).send({ token });
     })
@@ -63,7 +64,7 @@ const createUser = (req, res, next) => {
     password,
   } = req.body;
 
-  bcrypt.hash(password, 10)
+  bcrypt.hash(password, SALT_ROUND)
     .then((hash) => User.create({
       name,
       about,

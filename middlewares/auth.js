@@ -1,6 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const jwt = require('jsonwebtoken');
 const AuthErr = require('../errors/authError');
+const { SECRET_KEY } = require('../config/config');
 
 // eslint-disable-next-line consistent-return
 module.exports = (req, res, next) => {
@@ -18,7 +19,7 @@ module.exports = (req, res, next) => {
 
   try {
     // попытаемся верифицировать токен
-    payload = jwt.verify(token, 'some-secret-key');
+    payload = jwt.verify(token, SECRET_KEY);
   } catch (e) {
     // отправим ошибку, если не получилось
     return next(new AuthErr('Необходима авторизация'));

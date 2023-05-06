@@ -1,4 +1,4 @@
-const { NOT_OWNER_STATUS } = require('./errors');
+const { NOT_OWNER_STATUS } = require('../config/config');
 
 class NotOwner extends Error {
   constructor(message) {

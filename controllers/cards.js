@@ -3,10 +3,7 @@ const Card = require('../models/card');
 const NotFound = require('../errors/notFound');
 const BadRequest = require('../errors/badRequest');
 const NotOwner = require('../errors/notOwner');
-const {
-  OK_STATUS,
-  OK_CREATED_STATUS,
-} = require('../errors/errors');
+const { OK_STATUS, OK_CREATED_STATUS } = require('../config/config');
 
 const getCards = (req, res, next) => {
   Card.find({})

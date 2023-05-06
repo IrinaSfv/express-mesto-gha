@@ -5,10 +5,11 @@ const { errors } = require('celebrate');
 const auth = require('./middlewares/auth');
 const { validateLogin, validateCreateUser } = require('./middlewares/validation');
 const { createUser, login } = require('./controllers/users');
-// Код ошибки "Такой страницы не существует"
-const { NOT_FOUND_STATUS, INTERNAL_SERVER_STATUS } = require('./errors/errors');
-// Слушаем 3000 порт
-const { PORT = 3000 } = process.env;
+const NotFound = require('./errors/notFound');
+
+// Переменные окружения
+const { PORT, MONGO_URL, INTERNAL_SERVER_STATUS } = require('./config/config');
+
 // Импорт роутов
 const { userRouter, cardRouter } = require('./routes');
 
@@ -17,7 +18,7 @@ const app = express();
 app.use(express.json());
 
 // Подключаемся к серверу mongo
-mongoose.connect('mongodb://localhost:27017/mestodb');
+mongoose.connect(MONGO_URL);
 
 // Подключаем роуты
 app.post('/signin', validateLogin, login);
@@ -27,8 +28,8 @@ app.use(auth);
 
 app.use(userRouter);
 app.use(cardRouter);
-app.use('*', (req, res) => {
-  res.status(NOT_FOUND_STATUS).send({ message: 'Такой страницы не существует' });
+app.use('*', (req, res, next) => {
+  next(new NotFound('Такой страницы не существует'));
 });
 
 // Обрабатываем ошибки

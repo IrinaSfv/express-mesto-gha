@@ -1,4 +1,4 @@
-const { UNAUTHORIZED_STATUS } = require('./errors');
+const { UNAUTHORIZED_STATUS } = require('../config/config');
 
 class AuthError extends Error {
   constructor(message) {

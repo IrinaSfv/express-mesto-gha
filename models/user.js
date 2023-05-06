@@ -4,26 +4,32 @@ const bcrypt = require('bcryptjs');
 // eslint-disable-next-line import/no-extraneous-dependencies
 const validator = require('validator');
 const AuthError = require('../errors/authError');
+const {
+  REG_URL,
+  DEFAULT_NAME,
+  DEFAULT_ABOUT,
+  DEFAULT_AVATAR_URL,
+} = require('../config/config');
 
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    default: 'Жак-Ив Кусто',
+    default: DEFAULT_NAME,
     minlength: [2, 'Имя не может быть короче 2 символов'],
     maxlength: [30, 'Имя не может быть длиннее 30 символов'],
   },
   about: {
     type: String,
-    default: 'Исследователь',
+    default: DEFAULT_ABOUT,
     minlength: [2, 'Информация о себе не может быть короче 2 символов'],
     maxlength: [30, 'Информация о себе не может быть длиннее 30 символов'],
   },
   avatar: {
     type: String,
-    default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+    default: DEFAULT_AVATAR_URL,
     validate: {
       validator(url) {
-        return /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)$/i.test(url);
+        return REG_URL.test(url);
       },
       message: 'Неверно указан URL аватара',
     },

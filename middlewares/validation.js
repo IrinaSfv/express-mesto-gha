@@ -1,8 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { celebrate, Joi } = require('celebrate');
-
-const REG_URL = /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)$/;
-const REG_ID = /^[0-9a-fA-F]{24}$/;
+const { REG_URL, REG_ID } = require('../config/config');
 
 const validateLogin = celebrate({
   body: Joi.object().keys({
@@ -54,8 +52,6 @@ const validateUpdateCard = celebrate({
 });
 
 module.exports = {
-  REG_URL,
-  REG_ID,
   validateLogin,
   validateCreateUser,
   validateGetUser,
