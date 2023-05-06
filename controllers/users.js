@@ -8,13 +8,10 @@ const NotFound = require('../errors/notFound');
 const BadRequest = require('../errors/badRequest');
 const AuthError = require('../errors/authError');
 const ConflictError = require('../errors/conflict');
-// const WrongTokenError = require('../errors/wrongToken');
 
 const {
   OK_STATUS,
   OK_CREATED_STATUS,
-  // BAD_REQUEST_STATUS,
-  // NOT_FOUND_STATUS,
 } = require('../errors/errors');
 
 const getUsers = (req, res, next) => {
@@ -29,10 +26,10 @@ const getUser = (req, res, next) => {
   console.log(req.params);
   const { userId } = req.params;
   User.findById(userId)
-    .orFail(() => {
-      throw new NotFound('Пользователь с таким id не найден');
-    })
     .then((user) => {
+      if (!user) {
+        throw new NotFound('Пользователь с таким id не найден');
+      }
       res.status(OK_STATUS).send({ data: user });
     })
     .catch((e) => {
@@ -92,7 +89,6 @@ const createUser = (req, res, next) => {
           .join('; ');
 
         next(new BadRequest(message));
-        // res.status(BAD_REQUEST_STATUS).send({ message });
       } else {
         next(e);
       }
@@ -109,16 +105,6 @@ const getCurrentUserInfo = (req, res, next) => {
     .then((user) => {
       res.status(OK_STATUS).send({ data: user });
     })
-    // .catch((e) => {
-    //   if (e instanceof NotFound) {
-    //     res.status(NOT_FOUND_STATUS).send({ message: 'Пользователь с таким id не найден' });
-    //   } else if (e instanceof mongoose.Error.CastError) {
-    //     res.status(BAD_REQUEST_STATUS)
-    //        .send({ message: 'Переданы некорректные данные о пользователе' });
-    //   } else {
-    //     next(e);
-    //   }
-    // });
     .catch(next);
 };
 
@@ -137,16 +123,6 @@ const updateUser = (req, res, next, newData) => {
     .then((user) => {
       res.status(OK_STATUS).send({ data: user });
     })
-    // .catch((e) => {
-    //   if (e instanceof NotFound) {
-    //     res.status(NOT_FOUND_STATUS).send({ message: 'Пользователь с таким id не найден' });
-    //   } else if (e instanceof mongoose.Error.ValidationError) {
-    //     res.status(BAD_REQUEST_STATUS)
-    //        .send({ message: 'Переданы некорректные данные при обновлении аватара' });
-    //   } else {
-    //     next(e);
-    //   }
-    // });
     .catch(next);
 };
 

@@ -6,9 +6,6 @@ const NotOwner = require('../errors/notOwner');
 const {
   OK_STATUS,
   OK_CREATED_STATUS,
-  // BAD_REQUEST_STATUS,
-  // NOT_OWNER_STATUS,
-  // NOT_FOUND_STATUS,
 } = require('../errors/errors');
 
 const getCards = (req, res, next) => {
@@ -33,7 +30,6 @@ const createCard = (req, res, next) => {
           .join('; ');
 
         next(new BadRequest(message));
-        // res.status(BAD_REQUEST_STATUS).send({ message });
       } else {
         next(e);
       }
@@ -44,30 +40,17 @@ const deleteCard = (req, res, next) => {
   const { cardId } = req.params;
   const ownerId = req.user._id;
   Card.findById(cardId)
-    .orFail(() => {
-      throw new NotFound('Карточка не найдена');
-    })
     .populate(['owner', 'likes'])
     .then((card) => {
+      if (!card) {
+        throw new NotFound('Карточка не найдена');
+      }
       if (!card.owner.equals(ownerId)) {
         throw new NotOwner('Невозможно удалить чужую карточку');
       } else {
-        return card.remove();
+        return card.remove().then(() => res.status(OK_STATUS).send({ message: 'Карточка удалена' }));
       }
     })
-    .then(() => res.status(OK_STATUS).send({ message: 'Карточка удалена' }))
-    // .catch((e) => {
-    //   if (e instanceof NotFound) {
-    //     res.status(NOT_FOUND_STATUS).send({ message: 'Карточка не найдена' });
-    //   } else if (e instanceof mongoose.Error.CastError) {
-    //     res.status(BAD_REQUEST_STATUS)
-    // .send({ message: 'Переданы некорректные данные о карточке' });
-    //   } else if (e instanceof NotOwner) {
-    //     res.status(NOT_OWNER_STATUS).send({ message: 'Невозможно удалить чужую карточку' });
-    //   } else {
-    //     next(e);
-    //   }
-    // });
     .catch((e) => {
       if (e instanceof mongoose.Error.CastError) {
         next(new BadRequest('Переданы некорректные данные о карточке'));
@@ -82,23 +65,14 @@ const updateCardLike = (req, res, next, newData) => {
     req.params.cardId,
     newData,
     { new: true },
-  ).orFail(() => {
-    throw new NotFound('Карточка не найдена');
-  })
+  )
     .populate(['owner', 'likes'])
     .then((card) => {
+      if (!card) {
+        throw new NotFound('Карточка не найдена');
+      }
       res.status(OK_STATUS).send({ data: card });
     })
-    // .catch((e) => {
-    //   if (e instanceof NotFound) {
-    //     res.status(NOT_FOUND_STATUS).send({ message: 'Карточка не найдена' });
-    //   } else if (e instanceof mongoose.Error.CastError) {
-    //     res.status(BAD_REQUEST_STATUS)
-    // .send({ message: 'Переданы некорректные данные о карточке' });
-    //   } else {
-    //     next(e);
-    //   }
-    // });
     .catch((e) => {
       if (e instanceof mongoose.Error.CastError) {
         next(new BadRequest('Переданы некорректные данные о карточке'));
