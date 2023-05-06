@@ -48,16 +48,15 @@ const login = (req, res, next) => {
   const { email, password } = req.body;
 
   return User.findUserByCredentials(email, password)
-    .orFail(() => {
-      throw new AuthError('Неправильная почта или пароль');
-    })
     .then((user) => {
       // создадим токен
       const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
       // аутентификация успешна
       res.status(OK_STATUS).send({ token });
     })
-    .catch(next);
+    .catch(() => {
+      next(new AuthError('Неправильная почта или пароль'));
+    });
 };
 
 const createUser = (req, res, next) => {
