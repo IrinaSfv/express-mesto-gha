@@ -6,7 +6,6 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const NotFound = require('../errors/notFound');
 const BadRequest = require('../errors/badRequest');
-const AuthError = require('../errors/authError');
 const ConflictError = require('../errors/conflict');
 const {
   OK_STATUS,
@@ -50,9 +49,7 @@ const login = (req, res, next) => {
       // аутентификация успешна
       res.status(OK_STATUS).send({ token });
     })
-    .catch(() => {
-      next(new AuthError('Неправильная почта или пароль'));
-    });
+    .catch(next);
 };
 
 const createUser = (req, res, next) => {
